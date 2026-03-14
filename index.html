@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serial Weighing Scale Reader</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔗 Serial Weighing Scale Reader</h1>
+            <p>Connect to weighing scales via serial port and read real-time measurements</p>
+        </header>
+
+        <div class="controls">
+            <button id="connectBtn" class="btn btn-primary">Connect to Serial Port</button>
+            <button id="disconnectBtn" class="btn btn-secondary" disabled>Disconnect</button>
+            <button id="clearBtn" class="btn btn-secondary">Clear Log</button>
+        </div>
+
+        <div class="status-section">
+            <div class="status-item">
+                <label>Connection Status:</label>
+                <span id="connectionStatus" class="status disconnected">Disconnected</span>
+            </div>
+            <div class="status-item">
+                <label>Port Info:</label>
+                <span id="portInfo">No port selected</span>
+            </div>
+            <div class="status-item">
+                <label>Baud Rate:</label>
+                <select id="baudRate">
+                    <option value="9600" selected>9600</option>
+                    <option value="4800">4800</option>
+                    <option value="14400">14400</option>
+                    <option value="19200">19200</option>
+                    <option value="38400">38400</option>
+                    <option value="57600">57600</option>
+                    <option value="115200">115200</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="data-section">
+            <div class="current-reading">
+                <h2>Current Reading</h2>
+                <div class="reading-display">
+                    <span id="currentWeight" class="weight-value">---</span>
+                    <span id="currentUnit" class="weight-unit">kg</span>
+                </div>
+                <div class="reading-meta">
+                    <span>Last Updated: <span id="lastUpdated">Never</span></span>
+                </div>
+            </div>
+
+            <div class="raw-data">
+                <h3>Raw Data Stream</h3>
+                <div class="data-controls">
+                    <label>
+                        <input type="checkbox" id="autoScroll" checked>
+                        Auto-scroll
+                    </label>
+                    <label>
+                        <input type="checkbox" id="parseData" checked>
+                        Parse weight data
+                    </label>
+                </div>
+                <div class="test-controls">
+                    <input type="text" id="testInput" placeholder="Test data: e.g., '50.25 kg' or 'ST,45.3,kg'" style="width: 200px; padding: 5px; margin-right: 10px;">
+                    <button id="testBtn" class="btn btn-success" style="padding: 5px 10px; font-size: 0.8rem;">🧪 Test Parse</button>
+                </div>
+                <div id="dataLog" class="data-log"></div>
+            </div>
+        </div>
+
+        <div class="help-section">
+            <h3>📋 Instructions</h3>
+            <ul>
+                <li><strong>Step 1:</strong> Click "Connect to Serial Port" button</li>
+                <li><strong>Step 2:</strong> Select your weighing scale's serial port from the browser dialog</li>
+                <li><strong>Step 3:</strong> Adjust baud rate if needed (most scales use 9600)</li>
+                <li><strong>Step 4:</strong> Start weighing - data will appear in real-time</li>
+            </ul>
+            
+            <div class="browser-support">
+                <h4>🌐 Browser Support</h4>
+                <p>This application requires a Chromium-based browser (Chrome, Edge, Opera) with Web Serial API support. 
+                   For production deployment, ensure your domain uses HTTPS.</p>
+                
+                <h4>🧪 Testing Without Hardware</h4>
+                <p>Use the test input above to simulate scale data formats:</p>
+                <ul>
+                    <li><code>50.25 kg</code> - Standard format</li>
+                    <li><code>ST,45.30,kg</code> - CSV with stability</li>
+                    <li><code>Weight: 75.5 lb</code> - Tagged format</li>
+                    <li><code>123.45 g ST</code> - Format with stability suffix</li>
+                    <li><code>25.5</code> - Raw number (assumes kg)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
