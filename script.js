@@ -88,21 +88,25 @@ class SerialWeighingScale {
 
     async disconnect() {
         try {
+            this.isConnected = false;
+
             if (this.reader) {
-                await this.reader.cancel();
-                await this.reader.releaseLock();
+                try {
+                    await this.reader.cancel();
+                } catch (e) {
+                    // Cancel may fail if already released, that's okay
+                }
                 this.reader = null;
             }
-            
+
             if (this.port) {
                 await this.port.close();
                 this.port = null;
             }
-            
-            this.isConnected = false;
+
             this.updateConnectionStatus(false);
             this.log('Disconnected from serial port');
-            
+
         } catch (error) {
             this.logError(`Error during disconnect: ${error.message}`);
         }
@@ -176,22 +180,22 @@ class SerialWeighingScale {
         // Try different parsing patterns for various scale formats
         const patterns = [
             // Pattern 1: "12.34 kg" or "12.34kg"
-            /^([+-]?\d+\.?\d*)\s*(kg|g|lb|lbs|oz|pounds|grams|kilograms)$/i,
-            
+            /^([+-]?(?:\d+\.?\d*|\.\d+))\s*(kg|g|lb|lbs|oz|pounds|grams|kilograms)$/i,
+
             // Pattern 2: "ST,+12.34,kg" (stable, weight, unit)
-            /^(?:ST|US|OL),([+-]?\d+\.?\d*),(\w+)$/i,
-            
+            /^(?:ST|US|OL),([+-]?(?:\d+\.?\d*|\.\d+)),(\w+)$/i,
+
             // Pattern 3: "+12.34 kg ST" (weight unit stability)
-            /^([+-]?\d+\.?\d*)\s*(\w+)\s*(?:ST|US|OL)$/i,
-            
+            /^([+-]?(?:\d+\.?\d*|\.\d+))\s*(\w+)\s*(?:ST|US|OL)$/i,
+
             // Pattern 4: "Weight: 12.34 kg"
-            /^(?:weight|wt):\s*([+-]?\d+\.?\d*)\s*(\w+)$/i,
-            
+            /^(?:weight|wt):\s*([+-]?(?:\d+\.?\d*|\.\d+))\s*(\w+)$/i,
+
             // Pattern 5: Just numbers (assume kg)
-            /^([+-]?\d+\.?\d*)$/,
-            
+            /^([+-]?(?:\d+\.?\d*|\.\d+))$/,
+
             // Pattern 6: CSV format "12.34,kg,ST"
-            /^([+-]?\d+\.?\d*),(\w+),?.*$/i
+            /^([+-]?(?:\d+\.?\d*|\.\d+)),(\w+),?.*$/i
         ];
 
         for (const pattern of patterns) {
