@@ -241,12 +241,37 @@ class SerialWeighingScale {
         this.currentWeight.textContent = weightData.weight.toFixed(2);
         this.currentUnit.textContent = weightData.unit;
         this.lastUpdated.textContent = new Date().toLocaleTimeString();
-        
+
         // Add visual feedback for new reading
         this.currentWeight.style.transform = 'scale(1.1)';
         setTimeout(() => {
             this.currentWeight.style.transform = 'scale(1)';
         }, 200);
+    }
+
+    updateConnectionStatus(connected) {
+        if (connected) {
+            this.connectionStatus.textContent = 'Connected';
+            this.connectionStatus.className = 'status connected';
+            this.connectBtn.disabled = true;
+            this.disconnectBtn.disabled = false;
+        } else {
+            this.connectionStatus.textContent = 'Disconnected';
+            this.connectionStatus.className = 'status disconnected';
+            this.connectBtn.disabled = false;
+            this.disconnectBtn.disabled = true;
+            this.portInfo.textContent = 'No port selected';
+            this.currentWeight.textContent = '---';
+            this.lastUpdated.textContent = 'Never';
+        }
+    }
+
+    updatePortInfo(info) {
+        let infoText = 'Serial Port';
+        if (info.usbVendorId && info.usbProductId) {
+            infoText = `USB Device (VID: ${info.usbVendorId.toString(16).toUpperCase()}, PID: ${info.usbProductId.toString(16).toUpperCase()})`;
+        }
+        this.portInfo.textContent = infoText;
     }
 
     log(message) {
