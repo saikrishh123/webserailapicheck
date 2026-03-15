@@ -249,31 +249,6 @@ class SerialWeighingScale {
         }, 200);
     }
 
-    updateConnectionStatus(connected) {
-        if (connected) {
-            this.connectionStatus.textContent = 'Connected';
-            this.connectionStatus.className = 'status connected';
-            this.connectBtn.disabled = true;
-            this.disconnectBtn.disabled = false;
-        } else {
-            this.connectionStatus.textContent = 'Disconnected';
-            this.connectionStatus.className = 'status disconnected';
-            this.connectBtn.disabled = false;
-            this.disconnectBtn.disabled = true;
-            this.portInfo.textContent = 'No port selected';
-            this.currentWeight.textContent = '---';
-            this.lastUpdated.textContent = 'Never';
-        }
-    }
-
-    updatePortInfo(info) {
-        let infoText = 'Serial Port';
-        if (info.usbVendorId && info.usbProductId) {
-            infoText = `USB Device (VID: ${info.usbVendorId.toString(16).toUpperCase()}, PID: ${info.usbProductId.toString(16).toUpperCase()})`;
-        }
-        this.portInfo.textContent = infoText;
-    }
-
     log(message) {
         const timestamp = new Date().toLocaleTimeString();
         const logEntry = document.createElement('div');
@@ -325,35 +300,10 @@ class SerialWeighingScale {
             this.logError('Enter test data in the input field (e.g., "50.25 kg" or "ST,45.3,kg")');
             return;
         }
-        
+
         this.log(`🧪 Testing data parsing with: "${testData}"`);
         this.processLine(testData);
         this.testInput.value = ''; // Clear input after test
-    }
-
-    updateConnectionStatus(connected) {
-        if (connected) {
-            this.connectionStatus.textContent = 'Connected';
-            this.connectionStatus.className = 'status connected';
-            this.connectBtn.disabled = true;
-            this.disconnectBtn.disabled = false;
-        } else {
-            this.connectionStatus.textContent = 'Disconnected';
-            this.connectionStatus.className = 'status disconnected';
-            this.connectBtn.disabled = false;
-            this.disconnectBtn.disabled = true;
-            this.portInfo.textContent = 'No port selected';
-            this.currentWeight.textContent = '---';
-            this.lastUpdated.textContent = 'Never';
-        }
-    }
-
-    updatePortInfo(info) {
-        let infoText = 'Serial Port';
-        if (info.usbVendorId && info.usbProductId) {
-            infoText = `USB Device (VID: ${info.usbVendorId.toString(16).padStart(4, '0')}, PID: ${info.usbProductId.toString(16).padStart(4, '0')})`;
-        }
-        this.portInfo.textContent = infoText;
     }
 }
 
