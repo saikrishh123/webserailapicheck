@@ -60,27 +60,32 @@ class SerialWeighingScale {
         try {
             // Request port access
             this.port = await navigator.serial.requestPort();
-            
+
             // Get port info
             const info = this.port.getInfo();
             this.updatePortInfo(info);
-            
+
+            const baudRate = parseInt(this.baudRate.value);
+            this.log(`Attempting to open port at ${baudRate} baud`);
+
             // Open the port with selected baud rate
-            await this.port.open({ 
-                baudRate: parseInt(this.baudRate.value),
+            // Note: Some WCH devices may need different flow control settings
+            await this.port.open({
+                baudRate: baudRate,
                 dataBits: 8,
                 stopBits: 1,
                 parity: 'none',
-                flowControl: 'none'
+                flowControl: 'hardware'  // Try hardware flow control for WCH devices
             });
-            
+
             this.isConnected = true;
             this.updateConnectionStatus(true);
             this.log('Connected to serial port successfully');
-            
+            this.log('Waiting for data... If connection interrupts immediately, try different baud rates (9600, 19200, 115200)');
+
             // Start reading data
             this.startReading();
-            
+
         } catch (error) {
             this.logError(`Failed to connect: ${error.message}`);
         }
@@ -117,6 +122,7 @@ class SerialWeighingScale {
 
         try {
             this.reader = this.port.readable.getReader();
+            let readCount = 0;
 
             while (this.isConnected && this.reader) {
                 try {
@@ -128,14 +134,24 @@ class SerialWeighingScale {
                     }
 
                     if (value) {
+                        readCount++;
+                        // Log raw bytes for first few reads to diagnose
+                        if (readCount <= 3) {
+                            const hexString = Array.from(value).map(b => '0x' + b.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+                            this.logRaw(`Raw bytes (${value.length} bytes): ${hexString}`);
+                        }
                         this.processIncomingData(value);
                     }
                 } catch (readError) {
                     // Handle read-specific errors
-                    if (readError.name === 'NetworkError' || readError.message.includes('Break received')) {
-                        // Port was disconnected or break signal received - expected
-                        this.log('Serial connection interrupted');
+                    if (readError.name === 'NetworkError') {
+                        this.log('Serial port disconnected');
                         break;
+                    } else if (readError.message && readError.message.includes('Break received')) {
+                        this.log('⚠️ Break signal received on first read - this is normal for some WCH devices');
+                        this.log('The device may have sent initialization/status data');
+                        // Continue reading instead of breaking - there may be more data
+                        continue;
                     } else {
                         this.logError(`Reading error: ${readError.message}`);
                         break;
