@@ -114,29 +114,49 @@ class SerialWeighingScale {
 
     async startReading() {
         if (!this.port) return;
-        
+
         try {
             this.reader = this.port.readable.getReader();
-            
+
             while (this.isConnected && this.reader) {
-                const { value, done } = await this.reader.read();
-                
-                if (done) {
-                    break;
-                }
-                
-                if (value) {
-                    this.processIncomingData(value);
+                try {
+                    const { value, done } = await this.reader.read();
+
+                    if (done) {
+                        this.log('Serial port stream ended');
+                        break;
+                    }
+
+                    if (value) {
+                        this.processIncomingData(value);
+                    }
+                } catch (readError) {
+                    // Handle read-specific errors
+                    if (readError.name === 'NetworkError' || readError.message.includes('Break received')) {
+                        // Port was disconnected or break signal received - expected
+                        this.log('Serial connection interrupted');
+                        break;
+                    } else {
+                        this.logError(`Reading error: ${readError.message}`);
+                        break;
+                    }
                 }
             }
         } catch (error) {
-            if (error.name !== 'NetworkError') {
-                this.logError(`Reading error: ${error.message}`);
-            }
+            this.logError(`Fatal error in serial reading: ${error.message}`);
         } finally {
             if (this.reader) {
-                this.reader.releaseLock();
+                try {
+                    this.reader.releaseLock();
+                } catch (e) {
+                    // Lock may already be released
+                }
                 this.reader = null;
+            }
+            // Auto-disconnect if still marked as connected
+            if (this.isConnected) {
+                this.isConnected = false;
+                this.updateConnectionStatus(false);
             }
         }
     }
